@@ -1,23 +1,12 @@
 <?php
 
-/**
- * テンプレートを読み込み
- *
- * @param string $filename ファイル名
- * @param array $assignData 出力したい値の配列
- *
- * @return void
- */
+
 function loadTemplate($filename, array $assignData = [])
 {
-    // 出力したい値が渡されている場合のみ
     if ($assignData) {
-        // 配列のキーの変数名を用意して、変数の中には配列を値を設定する
-        // 例: extract(['apple' => 'りんご']); // $apple = 'りんご'; の意味になる
         extract($assignData);
     }
 
-    // テンプレートのファイルを読み込む
     include __DIR__ . '/../template/'.$filename.'.tpl.php';
 }
 
@@ -28,16 +17,12 @@ function loadTemplate($filename, array $assignData = [])
  */
 function error404()
 {
-    // HTTPレスポンスのヘッダを404にする
     header('HTTP/1.1 404 Not Found');
 
-    // レスポンスの種類を指定する
     header('Content-Type: text/html; charset=UTF-8');
 
-    // 404ページを出力
     loadTemplate('404');
 
-    // PHPスクリプトを終了(0は正常に終了)
     exit(0);
 }
 
@@ -50,16 +35,12 @@ function error404()
  */
 function error404Json($response)
 {
-    // HTTPレスポンスのヘッダを404にする
     header('HTTP/1.1 404 Not Found');
 
-    // レスポンスの種類を指定する
     header('Content-Type: application/json; charset=UTF-8');
 
-    // jsonを出力
     echo json_encode($response);
 
-    // PHPスクリプトを終了(0は正常に終了)
     exit(0);
 }
 
@@ -70,31 +51,22 @@ function error404Json($response)
  */
 function fetchAll()
 {
-    // クイズの問題の情報一覧をを保存する入れ物を用意
     $questions = [];
 
-    // ファイル操作の準備をする(r: 読み込み専用)
     $handle = fopen(__DIR__.'/data.csv', 'r');
 
-    // ファイルが操作できるか判定
     if ($handle === false) {
-        // 操作できないときは空を返す
         return $questions;
     }
 
-    // ファイルの中身を1行ずつ取得する
     while ($row = fgetcsv($handle)) {
-        // クイズの問題データ以外は無視する
         if (isDataRow($row)) {
-            // クイズの問題だけを配列に追加する
             $questions[] = $row;
         }
     }
 
-    // ファイルの操作を終了する
     fclose($handle);
 
-    // 取得できた値を返す
     return $questions;
 }
 
@@ -107,16 +79,12 @@ function fetchAll()
  */
 function fetchById($id)
 {
-    // (毎回全部のデータを取得するのでベストな実装ではない)
     foreach (fetchAll() as $row) {
-        // 指定されたIDと一致するか確認
         if ($row[0] === $id) {
-            // 一致した行を返す
             return $row;
         }
     }
 
-    // IDがヒットしなかったら空を返す
     return [];
 }
 
@@ -129,32 +97,26 @@ function fetchById($id)
  */
 function isDataRow(array $row)
 {
-    // データの項目数が足りているか判定
     if (count($row) !== 8) {
         return false;
     }
 
-    // データの項目の中身がすべて埋まっているか確認する
     foreach ($row as $value) {
-        // 項目の値が空か判定
         if (empty($value)) {
             return false;
         }
     }
 
-    // idの項目が数字ではない場合は無視する
     if (!is_numeric($row[0])) {
         return false;
     }
 
-    // 正しい答えはa,b,c,dのどれか
     $correctAnswer = strtoupper($row[6]);
     $availableAnswers = ['A', 'B', 'C', 'D'];
     if (!in_array($correctAnswer, $availableAnswers)) {
         return false;
     }
 
-    // すべてチェックが問題なければtrue
     return true;
 }
 
@@ -168,7 +130,6 @@ function isDataRow(array $row)
  */
 function generateFormattedData($data)
 {
-    // 構造化した配列を作成する
     $formattedData = [
         'id' => escape($data[0]),
         'question' => escape($data[1], true),
@@ -195,12 +156,9 @@ function generateFormattedData($data)
  */
 function escape($data, $nl2br = false)
 {
-    // HTMLに埋め込んでも大丈夫な文字に変換する
     $convertedData = htmlspecialchars($data, ENT_HTML5);
 
-    // 改行コードを<br>タグに変換するか判定
     if ($nl2br) {
-        /// 改行コードを<br>タグに変換したものをを返却
         return nl2br($convertedData);
     }
 
